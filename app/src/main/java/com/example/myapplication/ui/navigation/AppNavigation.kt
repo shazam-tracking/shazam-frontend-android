@@ -1,8 +1,12 @@
 package com.example.myapplication.ui.navigation
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -23,7 +27,7 @@ fun AppNavigation(
         composable(Screen.Auth.route) {
             AuthScreen(
                 onAuthSuccess = {
-                    navController.navigate(Screen.Home.route) {  // ← Changed to Home
+                    navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Auth.route) { inclusive = true }
                     }
                 }
@@ -31,30 +35,46 @@ fun AppNavigation(
         }
 
         composable(Screen.Home.route) {
-            // Combined screen showing MusicRecognition + RecognitionResult
-            androidx.compose.foundation.layout.Column(
-                modifier = androidx.compose.ui.Modifier.fillMaxSize()
+            // DON'T use Box with fillMaxSize and verticalScroll together
+            // Just stack them directly
+            Column(
+                modifier = Modifier.fillMaxSize()
             ) {
-                MusicRecognitionScreen()
-                RecognitionResult()
+                // Music Recognition at top
+                MusicRecognitionScreen(navController = navController)
+
+                // Recognition Result below (it has its own scrolling)
+                RecognitionResult(navController = navController)
             }
         }
 
         composable(Screen.Fingerprint.route) {
-//            FingerprintScreen()
+            // Placeholder for Fingerprint screen
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFF0A0033)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Fingerprint Screen\n(Add New Song)",
+                    color = Color.White,
+                    fontSize = 24.sp
+                )
+            }
         }
 
         composable(Screen.Profile.route) {
-            // Blank for now - you can add later
-            androidx.compose.foundation.layout.Box(
-                modifier = androidx.compose.ui.Modifier
+            // Placeholder for Profile screen
+            Box(
+                modifier = Modifier
                     .fillMaxSize()
-                    .background(androidx.compose.ui.graphics.Color(0xFF0A0033)),
-                contentAlignment = androidx.compose.ui.Alignment.Center
+                    .background(Color(0xFF0A0033)),
+                contentAlignment = Alignment.Center
             ) {
-                androidx.compose.material3.Text(
+                Text(
                     text = "Profile Screen",
-                    color = androidx.compose.ui.graphics.Color.White,
+                    color = Color.White,
                     fontSize = 24.sp
                 )
             }

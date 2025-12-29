@@ -3,7 +3,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,15 +16,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.offset
-
-
+import androidx.navigation.NavController
 
 @Composable
-fun MusicRecognitionScreen() {
+fun MusicRecognitionScreen(navController: NavController) {
 
     var isListening by remember { mutableStateOf(false) }
 
@@ -42,7 +40,8 @@ fun MusicRecognitionScreen() {
 
     Box(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
+            .height(700.dp)
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
@@ -199,5 +198,3 @@ fun AnimatedWaveform(
         }
     }
 }
-
-
