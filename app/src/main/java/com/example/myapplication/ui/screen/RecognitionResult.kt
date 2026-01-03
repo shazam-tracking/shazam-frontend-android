@@ -22,18 +22,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import androidx.navigation.NavController
 
 @Composable
-fun RecognitionResult() {
+fun RecognitionResult(
+    navController: NavController
+) {
     Box(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .background(Color(0xFF03002E))
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
+                .padding(bottom = 80.dp)
         ) {
             // Status Bar
             StatusBar()
@@ -59,12 +63,16 @@ fun RecognitionResult() {
                 // Audio Features Section
                 AudioFeaturesSection()
 
-                Spacer(modifier = Modifier.height(100.dp))
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
 
         // Bottom Navigation
-        BottomNavigation(modifier = Modifier.align(Alignment.BottomCenter))
+        BottomNavigation(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            navController = navController,
+            currentRoute = "home"
+        )
     }
 }
 
@@ -122,6 +130,7 @@ fun HeroImageCard() {
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
+
 
         // Gradient Overlay
         Box(
@@ -240,6 +249,7 @@ fun HeroImageCard() {
         }
     }
 }
+
 
 @Composable
 fun SimilarSongsSection() {
@@ -363,6 +373,7 @@ fun AudioFeaturesSection() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -427,25 +438,57 @@ fun AudioFeatureBar(label: String, value: Int) {
 }
 
 @Composable
-fun BottomNavigation(modifier: Modifier = Modifier) {
+fun BottomNavigation(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    currentRoute: String
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .background(Color(0xFF0A0033).copy(alpha = 0.95f))
-            .padding(vertical = 46.dp),
+            .padding(vertical = 16.dp),
         horizontalArrangement = Arrangement.SpaceAround
     ) {
-        BottomNavItem("Home", Icons.Default.Home, false)
-        BottomNavItem("Fingerprint", Icons.Default.Fingerprint, true)
-        BottomNavItem("Profile", Icons.Default.Person, false)
+        BottomNavItem(
+            label = "Home",
+            icon = Icons.Default.Home,
+            isSelected = currentRoute == "home",
+            onClick = {
+                navController.navigate(com.example.myapplication.ui.navigation.Screen.Home.route) {
+                    popUpTo(com.example.myapplication.ui.navigation.Screen.Home.route) { inclusive = true }
+                }
+            }
+        )
+        BottomNavItem(
+            label = "Fingerprint",
+            icon = Icons.Default.Fingerprint,
+            isSelected = currentRoute == "fingerprint",
+            onClick = {
+                navController.navigate(com.example.myapplication.ui.navigation.Screen.Fingerprint.route)
+            }
+        )
+        BottomNavItem(
+            label = "Profile",
+            icon = Icons.Default.Person,
+            isSelected = currentRoute == "profile",
+            onClick = {
+                navController.navigate(com.example.myapplication.ui.navigation.Screen.Profile.route)
+            }
+        )
     }
 }
 
 @Composable
-fun BottomNavItem(label: String, icon: ImageVector, isSelected: Boolean) {
+fun BottomNavItem(
+    label: String,
+    icon: ImageVector,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable { }
+        modifier = Modifier.clickable { onClick() }
     ) {
         Icon(
             imageVector = icon,
