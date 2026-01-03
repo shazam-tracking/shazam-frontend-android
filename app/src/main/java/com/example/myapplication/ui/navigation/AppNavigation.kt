@@ -58,6 +58,7 @@ fun AppNavigation(
             }
         }
 
+        // ✅ FINGERPRINT SCREEN - ENABLED
         composable(Screen.Fingerprint.route) {
             Box(
                 modifier = Modifier
@@ -73,6 +74,7 @@ fun AppNavigation(
             }
         }
 
+        // ❌ PROFILE SCREEN - DISABLED (Placeholder)
         composable(Screen.Profile.route) {
             Box(
                 modifier = Modifier
