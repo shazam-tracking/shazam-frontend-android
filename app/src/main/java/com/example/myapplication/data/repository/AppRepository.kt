@@ -105,7 +105,6 @@ class AppRepository @Inject constructor(
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
         }
     }
-
     suspend fun logout() {
         tokenManager.clearToken()
     }
@@ -196,7 +195,6 @@ class AppRepository @Inject constructor(
                 emit(Resource.Error("Audio file is empty"))
                 return@flow
             }
-
             // Auto-detect MIME type from file extension
             val mimeType = when {
                 file.name.endsWith(".wav", ignoreCase = true) -> "audio/wav"
@@ -252,11 +250,10 @@ class AppRepository @Inject constructor(
                         android.util.Log.d("AppRepository", "💿 Album: ${result.data.album}")
                         android.util.Log.d("AppRepository", "📊 Score: ${result.data.score}")
                         android.util.Log.d("AppRepository", "🎼 Tempo: ${result.data.tempo}")
-                        android.util.Log.d("AppRepository", "⚡ Energy: ${result.data.energy}")
+                        android.util.Log.d("AppRepository", "⚡️ Energy: ${result.data.energy}")
                         android.util.Log.d("AppRepository", "💃 Dancability: ${result.data.dancability}")
-                        android.util.Log.d("AppRepository", "🖼️ Image URL: ${result.data.imageUrl}")
+                        android.util.Log.d("AppRepository", "🖼 Image URL: ${result.data.imageUrl}")
                         android.util.Log.d("AppRepository", "🔗 Track URL: ${result.data.trackUrl}")
-
                         // Log alternatives if present
                         result.data.alternatives?.let { alts ->
                             android.util.Log.d("AppRepository", "========================================")

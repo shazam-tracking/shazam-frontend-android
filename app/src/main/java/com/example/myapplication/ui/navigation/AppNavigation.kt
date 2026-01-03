@@ -15,10 +15,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.myapplication.ui.screen.AuthScreen
-import com.example.myapplication.ui.screen.FingerprintScreen
 import com.example.myapplication.ui.screen.MusicRecognitionScreen
 import com.example.myapplication.ui.screen.RecognitionResult
-import com.example.myapplication.ui.viewmodel.FingerprintViewModel
 import com.example.myapplication.ui.viewmodel.MusicRecognitionViewModel
 
 @Composable
@@ -62,12 +60,18 @@ fun AppNavigation(
 
         // ✅ FINGERPRINT SCREEN - ENABLED
         composable(Screen.Fingerprint.route) {
-            val fingerprintViewModel: FingerprintViewModel = hiltViewModel()
-
-            FingerprintScreen(
-                navController = navController,
-                viewModel = fingerprintViewModel
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFF0A0033)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Fingerprint Screen\n(Add New Song)",
+                    color = Color.White,
+                    fontSize = 24.sp
+                )
+            }
         }
 
         // ❌ PROFILE SCREEN - DISABLED (Placeholder)
@@ -79,7 +83,7 @@ fun AppNavigation(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Profile Screen\n(Coming Soon)",
+                    text = "Profile Screen",
                     color = Color.White,
                     fontSize = 24.sp
                 )
