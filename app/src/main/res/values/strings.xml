@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Shazam</string>
+    <string name="google_web_client_id">365302580382-mva921s7o8dtfmql7unmbcjmdk9nkkg3.apps.googleusercontent.com</string>
 </resources>

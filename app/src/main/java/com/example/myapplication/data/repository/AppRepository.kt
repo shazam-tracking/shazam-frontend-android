@@ -24,7 +24,7 @@ class AppRepository @Inject constructor(
     // AUTHENTICATION
     // ==========================================
 
-    suspend fun signUp(email: String, password: String, fullName: String): Flow<Resource<String>> = flow {
+    fun signUp(email: String, password: String, fullName: String): Flow<Resource<String>> = flow {
         try {
             emit(Resource.Loading())
 
@@ -42,7 +42,7 @@ class AppRepository @Inject constructor(
         }
     }
 
-    suspend fun signIn(email: String, password: String): Flow<Resource<String>> = flow {
+    fun signIn(email: String, password: String): Flow<Resource<String>> = flow {
         try {
             emit(Resource.Loading())
 
@@ -64,8 +64,70 @@ class AppRepository @Inject constructor(
         }
     }
 
+    // Google Sign-In - NEW
+    fun googleSignIn(idToken: String): Flow<Resource<String>> = flow {
+        try {
+            emit(Resource.Loading())
+
+            val request = GoogleSignInRequest(idToken)
+            val response = apiService.googleSignIn(request)
+
+            if (response.isSuccessful) {
+                val authResponse = response.body()
+                authResponse?.let {
+                    tokenManager.saveToken(it.accessToken)
+                    emit(Resource.Success("Login successful"))
+                } ?: emit(Resource.Error("No response body"))
+            } else {
+                val errorBody = response.errorBody()?.string()
+                emit(Resource.Error(errorBody ?: "Google sign-in failed"))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
+        }
+    }
+
+    // Forgot Password - NEW
+    fun forgotPassword(email: String): Flow<Resource<String>> = flow {
+        try {
+            emit(Resource.Loading())
+
+            val request = ForgotPasswordRequest(email)
+            val response = apiService.forgotPassword(request)
+
+            if (response.isSuccessful) {
+                emit(Resource.Success(response.body()?.message ?: "Reset link sent to your email"))
+            } else {
+                val errorBody = response.errorBody()?.string()
+                emit(Resource.Error(errorBody ?: "Failed to send reset link"))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
+        }
+    }
+
     suspend fun logout() {
         tokenManager.clearToken()
+    }
+
+    fun getUserProfile(): Flow<Resource<UserData>> = flow {
+        try {
+            emit(Resource.Loading())
+
+            val response = apiService.getCurrentUser()
+
+            if (response.isSuccessful) {
+                val userData = response.body()?.data
+                userData?.let {
+                    emit(Resource.Success(it))
+                } ?: emit(Resource.Error("No user data"))
+            } else {
+                val errorBody = response.errorBody()?.string()
+                emit(Resource.Error(errorBody ?: "Failed to load profile"))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
+        }
     }
 
     // ==========================================
@@ -140,6 +202,7 @@ class AppRepository @Inject constructor(
                 file.name.endsWith(".wav", ignoreCase = true) -> "audio/wav"
                 file.name.endsWith(".webm", ignoreCase = true) -> "audio/webm"
                 file.name.endsWith(".mp3", ignoreCase = true) -> "audio/mpeg"
+                file.name.endsWith(".m4a", ignoreCase = true) -> "audio/mp4"
                 file.name.endsWith(".ogg", ignoreCase = true) -> "audio/ogg"
                 else -> "audio/*"
             }
