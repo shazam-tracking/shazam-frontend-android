@@ -3,8 +3,10 @@ package com.example.myapplication.ui.screen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -12,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -19,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 import com.example.myapplication.ui.components.SharedBottomNavBar
 import com.example.myapplication.ui.navigation.Screen
@@ -31,12 +33,7 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    // 1. Collect Profile State
     val profileState by viewModel.profileState.collectAsState()
-
-    // 2. Observe navigation state to identify the current route
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Profile.route
 
     LaunchedEffect(Unit) {
         viewModel.loadUserProfile()
@@ -44,66 +41,83 @@ fun ProfileScreen(
 
     Scaffold(
         bottomBar = {
-            // 3. Use your SharedBottomNavBar here
             SharedBottomNavBar(
                 navController = navController,
-                currentRoute = currentRoute
+                currentRoute = Screen.Profile.route
             )
         },
         containerColor = Color(0xFF0A0033)
     ) { paddingValues ->
-        // 4. Apply paddingValues so content isn't hidden by the Nav Bar
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color(0xFF0A0033))
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xFF0A0033),
+                                Color(0xFF05001A)
+                            )
+                        )
+                    )
+                    .verticalScroll(rememberScrollState())
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // --- Top Bar ---
+                // Top Bar
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(modifier = Modifier.size(48.dp)) // Symmetry spacer
+                    // Empty space for symmetry
+                    Box(modifier = Modifier.size(48.dp))
 
                     Text(
                         text = "Profile",
-                        fontSize = 24.sp,
+                        fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
 
                     IconButton(
-                        onClick = { /* TODO: Navigate to Edit Profile */ },
+                        onClick = {
+                            navController.navigate(Screen.EditProfile.route)
+                        },
                         modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
                             Icons.Default.Edit,
                             contentDescription = "Edit",
-                            tint = Color.White.copy(alpha = 0.7f)
+                            tint = Color.White.copy(alpha = 0.7f),
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // --- Profile Picture ---
+                // Profile Picture
                 Box(
                     modifier = Modifier
-                        .size(140.dp)
+                        .size(120.dp)
                         .border(
-                            width = 4.dp,
-                            color = Color(0xFF8B5CF6),
+                            width = 3.dp,
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    Color(0xFFE91E63),
+                                    Color(0xFF9C27B0),
+                                    Color(0xFFF17140),
+                                    Color(0xFFFFCC00)
+                                )
+                            ),
                             shape = CircleShape
                         )
-                        .padding(4.dp)
+                        .padding(3.dp)
                         .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.1f)),
                     contentAlignment = Alignment.Center
@@ -118,16 +132,16 @@ fun ProfileScreen(
                     } else {
                         Text(
                             text = profileState.userData?.fullName?.firstOrNull()?.uppercase() ?: "U",
-                            fontSize = 64.sp,
+                            fontSize = 48.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // --- Information Cards ---
+                // Full Name Field
                 ProfileInfoCard(
                     label = "Fullname",
                     value = profileState.userData?.fullName ?: "Loading...",
@@ -136,6 +150,7 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Email Field
                 ProfileInfoCard(
                     label = "Email",
                     value = profileState.userData?.email ?: "Loading...",
@@ -144,15 +159,16 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Password Field (masked)
                 ProfileInfoCard(
                     label = "Password",
                     value = "••••••••",
                     icon = Icons.Default.Lock
                 )
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // --- Logout Button ---
+                // Sign Out Button
                 Button(
                     onClick = {
                         viewModel.logout()
@@ -164,12 +180,13 @@ fun ProfileScreen(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF8B5CF6)
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(28.dp)
                 ) {
                     Icon(
                         Icons.Default.ExitToApp,
                         contentDescription = "Sign out",
-                        tint = Color.White
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
@@ -180,15 +197,76 @@ fun ProfileScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // --- Loading State ---
+            // Loading Indicator
             if (profileState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = Color(0xFF8B5CF6)
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(
+                            color = Color(0xFF8B5CF6),
+                            strokeWidth = 4.dp,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Loading profile...",
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+            }
+
+            // Error Message
+            profileState.error?.let { error ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.7f))
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFFF5252).copy(alpha = 0.9f)
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                Icons.Default.Warning,
+                                contentDescription = "Error",
+                                tint = Color.White,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Error",
+                                color = Color.White,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = error,
+                                color = Color.White,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
             }
         }
     }

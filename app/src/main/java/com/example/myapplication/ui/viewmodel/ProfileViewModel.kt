@@ -1,5 +1,7 @@
 package com.example.myapplication.ui.viewmodel
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.UserData
@@ -18,6 +20,12 @@ data class ProfileState(
     val error: String? = null
 )
 
+data class EditProfileState(
+    val isLoading: Boolean = false,
+    val isSuccess: Boolean = false,
+    val error: String? = null
+)
+
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val repository: AppRepository
@@ -25,6 +33,9 @@ class ProfileViewModel @Inject constructor(
 
     private val _profileState = MutableStateFlow(ProfileState())
     val profileState: StateFlow<ProfileState> = _profileState.asStateFlow()
+
+    private val _editState = MutableStateFlow(EditProfileState())
+    val editState: StateFlow<EditProfileState> = _editState.asStateFlow()
 
     fun loadUserProfile() {
         viewModelScope.launch {
@@ -42,6 +53,45 @@ class ProfileViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun updateProfile(
+        context: Context,
+        fullName: String,
+        currentPassword: String?,
+        newPassword: String?,
+        profilePictureUri: Uri?
+    ) {
+        viewModelScope.launch {
+            repository.updateProfile(
+                context = context,
+                fullName = fullName,
+                currentPassword = currentPassword,
+                newPassword = newPassword,
+                profilePictureUri = profilePictureUri
+            ).collect { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        _editState.value = EditProfileState(isLoading = true)
+                    }
+                    is Resource.Success -> {
+                        _editState.value = EditProfileState(isSuccess = true)
+                        loadUserProfile()
+                    }
+                    is Resource.Error -> {
+                        _editState.value = EditProfileState(error = result.message)
+                    }
+                }
+            }
+        }
+    }
+
+    fun setEditError(message: String) {
+        _editState.value = EditProfileState(error = message)
+    }
+
+    fun resetEditState() {
+        _editState.value = EditProfileState()
     }
 
     fun logout() {
