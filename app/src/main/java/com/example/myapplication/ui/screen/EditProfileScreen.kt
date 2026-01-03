@@ -50,20 +50,18 @@ fun EditProfileScreen(
     var showCurrentPassword by remember { mutableStateOf(false) }
     var showNewPassword by remember { mutableStateOf(false) }
     var showConfirmPassword by remember { mutableStateOf(false) }
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Initialize with current data
+    // Load current profile data
+    LaunchedEffect(Unit) {
+        viewModel.loadUserProfile()
+    }
+
+    // Initialize with current data when profile loads
     LaunchedEffect(profileState.userData) {
         profileState.userData?.let {
             fullName = it.fullName
+            android.util.Log.d("EditProfileScreen", "Loaded profile - Name: ${it.fullName}")
         }
-    }
-
-    // Image picker
-    val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        selectedImageUri = uri
     }
 
     // Auto-dismiss and navigate back on success
@@ -129,73 +127,40 @@ fun EditProfileScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Profile Picture
+                // Profile Picture (Read-only - show current picture)
                 Box(
-                    modifier = Modifier.size(120.dp),
-                    contentAlignment = Alignment.BottomEnd
+                    modifier = Modifier
+                        .size(120.dp)
+                        .border(
+                            width = 3.dp,
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    Color(0xFFE91E63),
+                                    Color(0xFF9C27B0),
+                                    Color(0xFFF17140),
+                                    Color(0xFFFFCC00)
+                                )
+                            ),
+                            shape = CircleShape
+                        )
+                        .padding(3.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .border(
-                                width = 3.dp,
-                                brush = Brush.linearGradient(
-                                    colors = listOf(
-                                        Color(0xFFE91E63),
-                                        Color(0xFF9C27B0),
-                                        Color(0xFFF17140),
-                                        Color(0xFFFFCC00)
-                                    )
-                                ),
-                                shape = CircleShape
-                            )
-                            .padding(3.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.1f))
-                            .clickable { imagePickerLauncher.launch("image/*") },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        when {
-                            selectedImageUri != null -> {
-                                AsyncImage(
-                                    model = selectedImageUri,
-                                    contentDescription = "Selected",
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
-                                )
-                            }
-                            profileState.userData?.profilePictureUrl != null -> {
-                                AsyncImage(
-                                    model = profileState.userData?.profilePictureUrl,
-                                    contentDescription = "Profile",
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
-                                )
-                            }
-                            else -> {
-                                Text(
-                                    text = fullName.firstOrNull()?.uppercase() ?: "U",
-                                    fontSize = 48.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                            }
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .background(Color(0xFF8B5CF6), CircleShape)
-                            .border(2.dp, Color(0xFF0A0033), CircleShape)
-                            .clickable { imagePickerLauncher.launch("image/*") },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Default.Edit,
-                            contentDescription = "Edit Photo",
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
+                    if (profileState.userData?.profilePictureUrl != null) {
+                        AsyncImage(
+                            model = profileState.userData?.profilePictureUrl,
+                            contentDescription = "Profile",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Text(
+                            text = fullName.firstOrNull()?.uppercase() ?: "U",
+                            fontSize = 48.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
                         )
                     }
                 }
@@ -331,23 +296,25 @@ fun EditProfileScreen(
                 // Save Button
                 Button(
                     onClick = {
+                        // Validate passwords match
                         if (newPassword.isNotEmpty() && newPassword != confirmPassword) {
                             viewModel.setEditError("Passwords do not match")
                             return@Button
                         }
 
+                        // Update profile (without image)
                         viewModel.updateProfile(
                             context = context,
                             fullName = fullName,
                             currentPassword = currentPassword.ifEmpty { null },
                             newPassword = newPassword.ifEmpty { null },
-                            profilePictureUri = selectedImageUri
+                            profilePictureUri = null // No image upload
                         )
                     },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B5CF6)),
                     shape = RoundedCornerShape(28.dp),
-                    enabled = !editState.isLoading
+                    enabled = !editState.isLoading && fullName.isNotBlank()
                 ) {
                     if (editState.isLoading) {
                         CircularProgressIndicator(
@@ -363,6 +330,18 @@ fun EditProfileScreen(
                 }
 
                 Spacer(Modifier.height(24.dp))
+            }
+
+            // Loading overlay while fetching profile
+            if (profileState.isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color(0xFF8B5CF6))
+                }
             }
 
             // Success Message
