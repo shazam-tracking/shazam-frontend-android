@@ -3,9 +3,10 @@ package com.example.myapplication
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.data.local.TokenManager
 import com.example.myapplication.ui.navigation.AppNavigation
@@ -23,7 +24,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // Remove enableEdgeToEdge() temporarily
 
         // Check if user is logged in
         val isLoggedIn = runBlocking {
@@ -32,12 +33,14 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
-                Surface {
+                Surface(
+                    modifier = Modifier.fillMaxSize()
+                ) {
                     val navController = rememberNavController()
 
                     AppNavigation(
                         navController = navController,
-                        startDestination = if (isLoggedIn) Screen.Home.route else Screen.Auth.route  // ← Home instead of Fingerprint
+                        startDestination = if (isLoggedIn) Screen.Home.route else Screen.Auth.route
                     )
                 }
             }
