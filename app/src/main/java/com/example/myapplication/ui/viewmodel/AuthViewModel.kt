@@ -117,6 +117,10 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun setError(message: String) {
+        _authState.value = AuthState(error = message)
+    }
+
     fun resetState() {
         _authState.value = AuthState()
     }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -103,12 +104,40 @@ fun AuthScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+
             Spacer(modifier = Modifier.weight(0.3f))
 
-            // Title
+            // Back Button (only on Forgot Password)
+            if (showForgotPassword) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp),
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    IconButton(
+                        onClick = {
+                            showForgotPassword = false
+                            email = ""
+                            viewModel.resetState()
+                        },
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(Color(0xFF8B5CF6), CircleShape)
+                    ) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                }
+            }
+
+            // Title with proper spacing for "Forgot password?"
             Text(
                 text = when {
-                    showForgotPassword -> "Forgot password?"
+                    showForgotPassword -> "Forgot\npassword?"
                     isSignUp -> "Sign up"
                     else -> "Sign in"
                 },
@@ -116,14 +145,24 @@ fun AuthScreen(
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 letterSpacing = 0.5.sp,
-                modifier = Modifier.padding(bottom = 48.dp)
+                textAlign = if (showForgotPassword) TextAlign.Start else TextAlign.Center,
+                lineHeight = 40.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 48.dp)
             )
 
             // Forgot Password Screen
             AnimatedVisibility(
                 visible = showForgotPassword,
-                enter = fadeIn() + slideInVertically(),
-                exit = fadeOut() + slideOutVertically()
+                enter = fadeIn(animationSpec = tween(300)) + slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ),
+                exit = fadeOut(animationSpec = tween(300)) + slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(300)
+                )
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -133,7 +172,7 @@ fun AuthScreen(
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        label = { Text("Email", color = Color.White.copy(alpha = 0.7f)) },
+                        label = { Text("Email") },
                         leadingIcon = {
                             Icon(
                                 Icons.Default.Email,
@@ -157,7 +196,8 @@ fun AuthScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         singleLine = true
                     )
-                    // Send Reset Link Button - ALWAYS ENABLED
+
+                    // Send Reset Link Button
                     Button(
                         onClick = {
                             if (email.isNotBlank()) {
@@ -190,36 +230,35 @@ fun AuthScreen(
                             }
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    TextButton(
-                        onClick = {
-                            showForgotPassword = false
-                            email = ""
-                            viewModel.resetState()
-                        }
-                    ) {
-                        Text("Back to Sign in", color = Color(0xFF8B5CF6), fontSize = 14.sp)
-                    }
                 }
             }
+
             // Sign In / Sign Up Form
             AnimatedVisibility(
                 visible = !showForgotPassword,
-                enter = fadeIn() + slideInVertically(),
-                exit = fadeOut() + slideOutVertically()
+                enter = fadeIn(animationSpec = tween(300)) + slideInHorizontally(
+                    initialOffsetX = { -it },
+                    animationSpec = tween(300)
+                ),
+                exit = fadeOut(animationSpec = tween(300)) + slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                )
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     // Full Name (only for sign up)
-                    AnimatedVisibility(visible = isSignUp) {
+                    AnimatedVisibility(
+                        visible = isSignUp,
+                        enter = fadeIn(animationSpec = tween(200)) + expandVertically(animationSpec = tween(200)),
+                        exit = fadeOut(animationSpec = tween(200)) + shrinkVertically(animationSpec = tween(200))
+                    ) {
                         OutlinedTextField(
                             value = fullName,
                             onValueChange = { fullName = it },
-                            label = { Text("Fullname", color = Color.White.copy(alpha = 0.7f)) },
+                            label = { Text("Fullname") },
                             leadingIcon = {
                                 Icon(
                                     Icons.Default.Person,
@@ -227,7 +266,6 @@ fun AuthScreen(
                                     tint = Color.White.copy(alpha = 0.7f)
                                 )
                             },
-                            placeholder = { Text("Your fullname", color = Color.White.copy(alpha = 0.5f)) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 16.dp),
@@ -249,7 +287,7 @@ fun AuthScreen(
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        label = { Text("Email", color = Color.White.copy(alpha = 0.7f)) },
+                        label = { Text("Email") },
                         leadingIcon = {
                             Icon(
                                 Icons.Default.Email,
@@ -257,7 +295,6 @@ fun AuthScreen(
                                 tint = Color.White.copy(alpha = 0.7f)
                             )
                         },
-                        placeholder = { Text("Your email", color = Color.White.copy(alpha = 0.5f)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 16.dp),
@@ -274,11 +311,12 @@ fun AuthScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         singleLine = true
                     )
+
                     // Password
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text("Password", color = Color.White.copy(alpha = 0.7f)) },
+                        label = { Text("Password") },
                         leadingIcon = {
                             Icon(
                                 Icons.Default.Lock,
@@ -296,7 +334,6 @@ fun AuthScreen(
                                 )
                             }
                         },
-                        placeholder = { Text("Enter your password", color = Color.White.copy(alpha = 0.5f)) },
                         visualTransformation = if (passwordVisible) VisualTransformation.None
                         else PasswordVisualTransformation(),
                         modifier = Modifier
@@ -315,12 +352,17 @@ fun AuthScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         singleLine = true
                     )
+
                     // Confirm Password (only for sign up)
-                    AnimatedVisibility(visible = isSignUp) {
+                    AnimatedVisibility(
+                        visible = isSignUp,
+                        enter = fadeIn(animationSpec = tween(200)) + expandVertically(animationSpec = tween(200)),
+                        exit = fadeOut(animationSpec = tween(200)) + shrinkVertically(animationSpec = tween(200))
+                    ) {
                         OutlinedTextField(
                             value = confirmPassword,
                             onValueChange = { confirmPassword = it },
-                            label = { Text("Confirm Password", color = Color.White.copy(alpha = 0.7f)) },
+                            label = { Text("Confirm Password") },
                             leadingIcon = {
                                 Icon(
                                     Icons.Default.Lock,
@@ -338,7 +380,6 @@ fun AuthScreen(
                                     )
                                 }
                             },
-                            placeholder = { Text("Enter your password", color = Color.White.copy(alpha = 0.5f)) },
                             visualTransformation = if (confirmPasswordVisible) VisualTransformation.None
                             else PasswordVisualTransformation(),
                             modifier = Modifier
@@ -380,21 +421,26 @@ fun AuthScreen(
                     } else {
                         Spacer(modifier = Modifier.height(16.dp))
                     }
-                    // Sign In/Up Button - ALWAYS ENABLED
+
+                    // Sign In/Up Button
                     Button(
                         onClick = {
                             if (isSignUp) {
                                 if (password != confirmPassword) {
-                                    // Passwords don't match - validation will be shown via error state
+                                    viewModel.setError("Passwords do not match")
                                     return@Button
                                 }
-                                if (email.isNotBlank() && password.isNotBlank() && fullName.isNotBlank()) {
-                                    viewModel.signUp(email, password, fullName)
+                                if (email.isBlank() || password.isBlank() || fullName.isBlank()) {
+                                    viewModel.setError("Please fill in all fields")
+                                    return@Button
                                 }
+                                viewModel.signUp(email, password, fullName)
                             } else {
-                                if (email.isNotBlank() && password.isNotBlank()) {
-                                    viewModel.signIn(email, password)
+                                if (email.isBlank() || password.isBlank()) {
+                                    viewModel.setError("Please fill in all fields")
+                                    return@Button
                                 }
+                                viewModel.signIn(email, password)
                             }
                         },
                         modifier = Modifier
@@ -430,7 +476,7 @@ fun AuthScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // OR Divider
+                    // OR Divider (Always visible, not loading-dependent)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -452,7 +498,8 @@ fun AuthScreen(
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
-                    // Google Sign-In Button
+
+                    // Google Sign-In Button (Always visible)
                     OutlinedButton(
                         onClick = {
                             val signInIntent = googleSignInHelper.getSignInIntent()
@@ -520,8 +567,13 @@ fun AuthScreen(
             }
 
             Spacer(modifier = Modifier.weight(1f))
+
             // Error/Success Messages at the bottom
-            authState.error?.let { error ->
+            AnimatedVisibility(
+                visible = authState.error != null,
+                enter = fadeIn() + slideInVertically { it },
+                exit = fadeOut() + slideOutVertically { it }
+            ) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -543,7 +595,7 @@ fun AuthScreen(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = error,
+                            text = authState.error ?: "",
                             color = Color(0xFFFF5252),
                             fontSize = 14.sp,
                             lineHeight = 20.sp
@@ -552,7 +604,11 @@ fun AuthScreen(
                 }
             }
 
-            authState.message?.let { message ->
+            AnimatedVisibility(
+                visible = authState.message != null,
+                enter = fadeIn() + slideInVertically { it },
+                exit = fadeOut() + slideOutVertically { it }
+            ) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -574,7 +630,7 @@ fun AuthScreen(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = message,
+                            text = authState.message ?: "",
                             color = Color(0xFF4CAF50),
                             fontSize = 14.sp,
                             lineHeight = 20.sp
