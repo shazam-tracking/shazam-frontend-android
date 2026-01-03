@@ -23,9 +23,13 @@ import javax.inject.Singleton
 object AppModule {
 
     // IMPORTANT: Change this to your actual backend URL
-    private const val BASE_URL = "http://10.0.2.2:8000/" // For Android Emulator
+    // For Android Emulator
+//    private const val BASE_URL = "http://10.0.2.2:8000/"
     // Use "http://YOUR_LOCAL_IP:8000/" for physical device
     // Example: "http://192.168.1.100:8000/"
+
+    // Your computer's IP address
+    private const val BASE_URL = "http://172.20.10.11:8000/"
 
     @Provides
     @Singleton

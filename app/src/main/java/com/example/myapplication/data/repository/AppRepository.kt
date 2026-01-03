@@ -100,6 +100,7 @@ class AppRepository @Inject constructor(
             val urlBody = spotifyUrl.toRequestBody("text/plain".toMediaTypeOrNull())
             val response = apiService.indexSpotifyUrl(urlBody)
 
+
             if (response.isSuccessful) {
                 emit(Resource.Success(response.body()?.message ?: "Song indexed successfully"))
             } else {
@@ -115,21 +116,127 @@ class AppRepository @Inject constructor(
         try {
             emit(Resource.Loading())
 
-            val requestFile = file.asRequestBody("audio/*".toMediaTypeOrNull())
+            android.util.Log.d("AppRepository", "========================================")
+            android.util.Log.d("AppRepository", "🎵 RECOGNIZE SONG REQUEST")
+            android.util.Log.d("AppRepository", "========================================")
+            android.util.Log.d("AppRepository", "📁 File Path: ${file.absolutePath}")
+            android.util.Log.d("AppRepository", "📁 File Name: ${file.name}")
+            android.util.Log.d("AppRepository", "📁 File Exists: ${file.exists()}")
+            android.util.Log.d("AppRepository", "📁 File Size: ${file.length()} bytes (${file.length() / 1024}KB)")
+
+            if (!file.exists()) {
+                android.util.Log.e("AppRepository", "❌ ERROR: File does not exist!")
+                emit(Resource.Error("Audio file not found"))
+                return@flow
+            }
+
+            if (file.length() == 0L) {
+                android.util.Log.e("AppRepository", "❌ ERROR: File is empty!")
+                emit(Resource.Error("Audio file is empty"))
+                return@flow
+            }
+
+            // Auto-detect MIME type from file extension
+            val mimeType = when {
+                file.name.endsWith(".wav", ignoreCase = true) -> "audio/wav"
+                file.name.endsWith(".webm", ignoreCase = true) -> "audio/webm"
+                file.name.endsWith(".mp3", ignoreCase = true) -> "audio/mpeg"
+                file.name.endsWith(".ogg", ignoreCase = true) -> "audio/ogg"
+                else -> "audio/*"
+            }
+
+            android.util.Log.d("AppRepository", "📊 File Type: ${file.name.substringAfterLast('.')}")
+            android.util.Log.d("AppRepository", "📊 MIME Type: $mimeType")
+
+            // Create multipart request
+            val requestFile = file.asRequestBody(mimeType.toMediaTypeOrNull())
             val filePart = MultipartBody.Part.createFormData("file", file.name, requestFile)
+
+            android.util.Log.d("AppRepository", "📤 Sending request to backend...")
+            android.util.Log.d("AppRepository", "   Content-Type: $mimeType")
+            android.util.Log.d("AppRepository", "   File name: ${file.name}")
 
             val response = apiService.recognizeSong(filePart)
 
+            android.util.Log.d("AppRepository", "========================================")
+            android.util.Log.d("AppRepository", "📥 BACKEND RESPONSE")
+            android.util.Log.d("AppRepository", "========================================")
+            android.util.Log.d("AppRepository", "📥 HTTP Status: ${response.code()}")
+            android.util.Log.d("AppRepository", "📥 HTTP Message: ${response.message()}")
+            android.util.Log.d("AppRepository", "📥 Is Successful: ${response.isSuccessful}")
+
             if (response.isSuccessful) {
-                response.body()?.let {
-                    emit(Resource.Success(it))
-                } ?: emit(Resource.Error("No response body"))
+                // Log raw JSON for debugging
+                val rawJson = response.body()?.let {
+                    com.google.gson.Gson().toJson(it)
+                } ?: "null"
+                android.util.Log.d("AppRepository", "📄 RAW JSON Response:")
+                android.util.Log.d("AppRepository", rawJson)
+
+
+                response.body()?.let { result ->
+                    android.util.Log.d("AppRepository", "========================================")
+                    android.util.Log.d("AppRepository", "✅ SUCCESS - RECOGNITION RESULT")
+                    android.util.Log.d("AppRepository", "========================================")
+                    android.util.Log.d("AppRepository", "🔹 Status: ${result.status}")
+                    android.util.Log.d("AppRepository", "🔹 Match: ${result.match}")
+                    android.util.Log.d("AppRepository", "🔹 Message: ${result.message}")
+
+                    if (result.match && result.data != null) {
+                        android.util.Log.d("AppRepository", "========================================")
+                        android.util.Log.d("AppRepository", "🎵 SONG DETAILS")
+                        android.util.Log.d("AppRepository", "========================================")
+                        android.util.Log.d("AppRepository", "🎵 Title: ${result.data.title}")
+                        android.util.Log.d("AppRepository", "🎤 Artist: ${result.data.artist}")
+                        android.util.Log.d("AppRepository", "💿 Album: ${result.data.album}")
+                        android.util.Log.d("AppRepository", "📊 Score: ${result.data.score}")
+                        android.util.Log.d("AppRepository", "🎼 Tempo: ${result.data.tempo}")
+                        android.util.Log.d("AppRepository", "⚡️ Energy: ${result.data.energy}")
+                        android.util.Log.d("AppRepository", "💃 Dancability: ${result.data.dancability}")
+                        android.util.Log.d("AppRepository", "🖼 Image URL: ${result.data.imageUrl}")
+                        android.util.Log.d("AppRepository", "🔗 Track URL: ${result.data.trackUrl}")
+
+                        // Log alternatives if present
+                        result.data.alternatives?.let { alts ->
+                            android.util.Log.d("AppRepository", "========================================")
+                            android.util.Log.d("AppRepository", "🎭 ALTERNATIVE MATCHES: ${alts.size}")
+                            android.util.Log.d("AppRepository", "========================================")
+                            alts.forEachIndexed { index, alt ->
+                                android.util.Log.d("AppRepository", "${index + 1}. ${alt.title} by ${alt.artist} (Score: ${alt.score})")
+                            }
+                        }
+                    } else {
+                        android.util.Log.d("AppRepository", "❌ No match found in database")
+                    }
+
+                    android.util.Log.d("AppRepository", "========================================")
+
+                    emit(Resource.Success(result))
+                } ?: run {
+                    android.util.Log.e("AppRepository", "❌ ERROR: Response body is null!")
+                    emit(Resource.Error("Empty response from server"))
+                }
             } else {
                 val errorBody = response.errorBody()?.string()
+                android.util.Log.e("AppRepository", "========================================")
+                android.util.Log.e("AppRepository", "❌ API ERROR")
+                android.util.Log.e("AppRepository", "========================================")
+                android.util.Log.e("AppRepository", "Error Body: $errorBody")
+                android.util.Log.e("AppRepository", "========================================")
                 emit(Resource.Error(errorBody ?: "Recognition failed"))
             }
+
+
         } catch (e: Exception) {
-            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
+            android.util.Log.e("AppRepository", "========================================")
+            android.util.Log.e("AppRepository", "💥 EXCEPTION OCCURRED")
+            android.util.Log.e("AppRepository", "========================================")
+            android.util.Log.e("AppRepository", "Exception Type: ${e.javaClass.simpleName}")
+            android.util.Log.e("AppRepository", "Exception Message: ${e.message}")
+            android.util.Log.e("AppRepository", "Localized Message: ${e.localizedMessage}")
+            android.util.Log.e("AppRepository", "Stack Trace:", e)
+            android.util.Log.e("AppRepository", "========================================")
+            emit(Resource.Error(e.localizedMessage ?: "Network error occurred"))
         }
     }
 }
