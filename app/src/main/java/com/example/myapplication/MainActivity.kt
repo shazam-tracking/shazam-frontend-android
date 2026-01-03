@@ -37,7 +37,7 @@ class MainActivity : ComponentActivity() {
 
                     AppNavigation(
                         navController = navController,
-                        startDestination = if (isLoggedIn) Screen.Fingerprint.route else Screen.Auth.route
+                        startDestination = if (isLoggedIn) Screen.Home.route else Screen.Auth.route  // ← Home instead of Fingerprint
                     )
                 }
             }
