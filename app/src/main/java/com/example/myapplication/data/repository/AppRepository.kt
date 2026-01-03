@@ -1,5 +1,7 @@
 package com.example.myapplication.data.repository
 
+import android.content.Context
+import android.net.Uri
 import com.example.myapplication.data.local.TokenManager
 import com.example.myapplication.data.model.*
 import com.example.myapplication.data.remote.ApiService
@@ -11,6 +13,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -64,7 +67,6 @@ class AppRepository @Inject constructor(
         }
     }
 
-    // Google Sign-In - NEW
     fun googleSignIn(idToken: String): Flow<Resource<String>> = flow {
         try {
             emit(Resource.Loading())
@@ -87,7 +89,6 @@ class AppRepository @Inject constructor(
         }
     }
 
-    // Forgot Password - NEW
     fun forgotPassword(email: String): Flow<Resource<String>> = flow {
         try {
             emit(Resource.Loading())
@@ -109,6 +110,10 @@ class AppRepository @Inject constructor(
         tokenManager.clearToken()
     }
 
+    // ==========================================
+    // USER PROFILE
+    // ==========================================
+
     fun getUserProfile(): Flow<Resource<UserData>> = flow {
         try {
             emit(Resource.Loading())
@@ -129,9 +134,124 @@ class AppRepository @Inject constructor(
         }
     }
 
+    fun updateProfile(
+        context: Context,
+        fullName: String,
+        currentPassword: String?,
+        newPassword: String?,
+        profilePictureUri: Uri?
+    ): Flow<Resource<String>> = flow {
+        try {
+            emit(Resource.Loading())
+
+            android.util.Log.d("AppRepository", "========================================")
+            android.util.Log.d("AppRepository", "📝 UPDATE PROFILE REQUEST")
+            android.util.Log.d("AppRepository", "========================================")
+            android.util.Log.d("AppRepository", "Full Name: $fullName")
+            android.util.Log.d("AppRepository", "Changing Password: ${newPassword != null}")
+            android.util.Log.d("AppRepository", "Profile Picture: ${profilePictureUri != null}")
+
+            // Prepare full name
+            val fullNamePart = fullName.toRequestBody("text/plain".toMediaTypeOrNull())
+
+            // Prepare password (only if changing)
+            val passwordPart = if (currentPassword != null && newPassword != null) {
+                newPassword.toRequestBody("text/plain".toMediaTypeOrNull())
+            } else null
+
+            // Prepare profile picture
+            val imagePart = profilePictureUri?.let { uri ->
+                android.util.Log.d("AppRepository", "Converting URI to File: $uri")
+                val file = uriToFile(context, uri)
+                android.util.Log.d("AppRepository", "File created: ${file.absolutePath}, Size: ${file.length()} bytes")
+
+                val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+                MultipartBody.Part.createFormData("profile_picture", file.name, requestFile)
+            }
+
+            android.util.Log.d("AppRepository", "Sending update request to backend...")
+
+            val response = apiService.updateProfile(
+                fullName = fullNamePart,
+                password = passwordPart,
+                profilePicture = imagePart
+            )
+
+            android.util.Log.d("AppRepository", "========================================")
+            android.util.Log.d("AppRepository", "📥 BACKEND RESPONSE")
+            android.util.Log.d("AppRepository", "========================================")
+            android.util.Log.d("AppRepository", "HTTP Status: ${response.code()}")
+            android.util.Log.d("AppRepository", "Is Successful: ${response.isSuccessful}")
+
+            if (response.isSuccessful) {
+                android.util.Log.d("AppRepository", "✅ Profile updated successfully!")
+                emit(Resource.Success("Profile updated successfully"))
+            } else {
+                val errorBody = response.errorBody()?.string()
+                android.util.Log.e("AppRepository", "❌ Error: $errorBody")
+                emit(Resource.Error(errorBody ?: "Failed to update profile"))
+            }
+
+            android.util.Log.d("AppRepository", "========================================")
+
+        } catch (e: Exception) {
+            android.util.Log.e("AppRepository", "========================================")
+            android.util.Log.e("AppRepository", "💥 EXCEPTION: ${e.message}")
+            android.util.Log.e("AppRepository", "Stack Trace:", e)
+            android.util.Log.e("AppRepository", "========================================")
+            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
+        }
+    }
+
+    private fun uriToFile(context: Context, uri: Uri): File {
+        val contentResolver = context.contentResolver
+        val fileName = "profile_${System.currentTimeMillis()}.jpg"
+        val file = File(context.cacheDir, fileName)
+
+        contentResolver.openInputStream(uri)?.use { input ->
+            FileOutputStream(file).use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        return file
+    }
+
     // ==========================================
     // FINGERPRINTING
     // ==========================================
+
+    fun indexSongFromSpotify(spotifyUrl: String): Flow<Resource<String>> = flow {
+        try {
+            emit(Resource.Loading())
+
+            android.util.Log.d("AppRepository", "========================================")
+            android.util.Log.d("AppRepository", "🎵 INDEX SONG FROM SPOTIFY")
+            android.util.Log.d("AppRepository", "========================================")
+            android.util.Log.d("AppRepository", "Spotify URL: $spotifyUrl")
+
+            val urlBody = spotifyUrl.toRequestBody("text/plain".toMediaTypeOrNull())
+            val response = apiService.indexSpotifyUrl(urlBody)
+
+            android.util.Log.d("AppRepository", "HTTP Status: ${response.code()}")
+            android.util.Log.d("AppRepository", "Is Successful: ${response.isSuccessful}")
+
+            if (response.isSuccessful) {
+                android.util.Log.d("AppRepository", "✅ Song indexed successfully!")
+                emit(Resource.Success(response.body()?.message ?: "Song indexed successfully"))
+            } else {
+                val errorBody = response.errorBody()?.string()
+                android.util.Log.e("AppRepository", "❌ Error: $errorBody")
+                emit(Resource.Error(errorBody ?: "Indexing failed"))
+            }
+
+            android.util.Log.d("AppRepository", "========================================")
+
+        } catch (e: Exception) {
+            android.util.Log.e("AppRepository", "💥 EXCEPTION: ${e.message}", e)
+            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
+        }
+    }
 
     suspend fun indexSongFromFile(file: File, songName: String): Flow<Resource<String>> = flow {
         try {
@@ -142,24 +262,6 @@ class AppRepository @Inject constructor(
             val songNameBody = songName.toRequestBody("text/plain".toMediaTypeOrNull())
 
             val response = apiService.indexFile(songNameBody, filePart)
-
-            if (response.isSuccessful) {
-                emit(Resource.Success(response.body()?.message ?: "Song indexed successfully"))
-            } else {
-                val errorBody = response.errorBody()?.string()
-                emit(Resource.Error(errorBody ?: "Indexing failed"))
-            }
-        } catch (e: Exception) {
-            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
-        }
-    }
-
-    suspend fun indexSongFromSpotify(spotifyUrl: String): Flow<Resource<String>> = flow {
-        try {
-            emit(Resource.Loading())
-
-            val urlBody = spotifyUrl.toRequestBody("text/plain".toMediaTypeOrNull())
-            val response = apiService.indexSpotifyUrl(urlBody)
 
             if (response.isSuccessful) {
                 emit(Resource.Success(response.body()?.message ?: "Song indexed successfully"))
@@ -213,8 +315,6 @@ class AppRepository @Inject constructor(
             val filePart = MultipartBody.Part.createFormData("file", file.name, requestFile)
 
             android.util.Log.d("AppRepository", "📤 Sending request to backend...")
-            android.util.Log.d("AppRepository", "   Content-Type: $mimeType")
-            android.util.Log.d("AppRepository", "   File name: ${file.name}")
 
             val response = apiService.recognizeSong(filePart)
 
@@ -222,52 +322,15 @@ class AppRepository @Inject constructor(
             android.util.Log.d("AppRepository", "📥 BACKEND RESPONSE")
             android.util.Log.d("AppRepository", "========================================")
             android.util.Log.d("AppRepository", "📥 HTTP Status: ${response.code()}")
-            android.util.Log.d("AppRepository", "📥 HTTP Message: ${response.message()}")
             android.util.Log.d("AppRepository", "📥 Is Successful: ${response.isSuccessful}")
 
             if (response.isSuccessful) {
-                // Log raw JSON for debugging
-                val rawJson = response.body()?.let {
-                    com.google.gson.Gson().toJson(it)
-                } ?: "null"
-                android.util.Log.d("AppRepository", "📄 RAW JSON Response:")
-                android.util.Log.d("AppRepository", rawJson)
-
                 response.body()?.let { result ->
-                    android.util.Log.d("AppRepository", "========================================")
-                    android.util.Log.d("AppRepository", "✅ SUCCESS - RECOGNITION RESULT")
-                    android.util.Log.d("AppRepository", "========================================")
-                    android.util.Log.d("AppRepository", "🔹 Status: ${result.status}")
-                    android.util.Log.d("AppRepository", "🔹 Match: ${result.match}")
-                    android.util.Log.d("AppRepository", "🔹 Message: ${result.message}")
+                    android.util.Log.d("AppRepository", "✅ SUCCESS - Match: ${result.match}")
 
                     if (result.match && result.data != null) {
-                        android.util.Log.d("AppRepository", "========================================")
-                        android.util.Log.d("AppRepository", "🎵 SONG DETAILS")
-                        android.util.Log.d("AppRepository", "========================================")
-                        android.util.Log.d("AppRepository", "🎵 Title: ${result.data.title}")
-                        android.util.Log.d("AppRepository", "🎤 Artist: ${result.data.artist}")
-                        android.util.Log.d("AppRepository", "💿 Album: ${result.data.album}")
-                        android.util.Log.d("AppRepository", "📊 Score: ${result.data.score}")
-                        android.util.Log.d("AppRepository", "🎼 Tempo: ${result.data.tempo}")
-                        android.util.Log.d("AppRepository", "⚡️ Energy: ${result.data.energy}")
-                        android.util.Log.d("AppRepository", "💃 Dancability: ${result.data.dancability}")
-                        android.util.Log.d("AppRepository", "🖼 Image URL: ${result.data.imageUrl}")
-                        android.util.Log.d("AppRepository", "🔗 Track URL: ${result.data.trackUrl}")
-                        // Log alternatives if present
-                        result.data.alternatives?.let { alts ->
-                            android.util.Log.d("AppRepository", "========================================")
-                            android.util.Log.d("AppRepository", "🎭 ALTERNATIVE MATCHES: ${alts.size}")
-                            android.util.Log.d("AppRepository", "========================================")
-                            alts.forEachIndexed { index, alt ->
-                                android.util.Log.d("AppRepository", "${index + 1}. ${alt.title} by ${alt.artist} (Score: ${alt.score})")
-                            }
-                        }
-                    } else {
-                        android.util.Log.d("AppRepository", "❌ No match found in database")
+                        android.util.Log.d("AppRepository", "🎵 Song: ${result.data.title} by ${result.data.artist}")
                     }
-
-                    android.util.Log.d("AppRepository", "========================================")
 
                     emit(Resource.Success(result))
                 } ?: run {
@@ -276,23 +339,14 @@ class AppRepository @Inject constructor(
                 }
             } else {
                 val errorBody = response.errorBody()?.string()
-                android.util.Log.e("AppRepository", "========================================")
-                android.util.Log.e("AppRepository", "❌ API ERROR")
-                android.util.Log.e("AppRepository", "========================================")
-                android.util.Log.e("AppRepository", "Error Body: $errorBody")
-                android.util.Log.e("AppRepository", "========================================")
+                android.util.Log.e("AppRepository", "❌ Error: $errorBody")
                 emit(Resource.Error(errorBody ?: "Recognition failed"))
             }
 
+            android.util.Log.d("AppRepository", "========================================")
+
         } catch (e: Exception) {
-            android.util.Log.e("AppRepository", "========================================")
-            android.util.Log.e("AppRepository", "💥 EXCEPTION OCCURRED")
-            android.util.Log.e("AppRepository", "========================================")
-            android.util.Log.e("AppRepository", "Exception Type: ${e.javaClass.simpleName}")
-            android.util.Log.e("AppRepository", "Exception Message: ${e.message}")
-            android.util.Log.e("AppRepository", "Localized Message: ${e.localizedMessage}")
-            android.util.Log.e("AppRepository", "Stack Trace:", e)
-            android.util.Log.e("AppRepository", "========================================")
+            android.util.Log.e("AppRepository", "💥 EXCEPTION: ${e.message}", e)
             emit(Resource.Error(e.localizedMessage ?: "Network error occurred"))
         }
     }
