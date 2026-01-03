@@ -30,8 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import com.example.myapplication.ui.components.SharedBottomNavBar
 import com.example.myapplication.ui.navigation.Screen
 import com.example.myapplication.ui.viewmodel.MusicRecognitionViewModel
 import com.example.myapplication.util.AudioRecorder
@@ -92,6 +90,7 @@ fun MusicRecognitionScreen(
                 scope.launch(Dispatchers.IO) {
                     try {
                         val file = audioRecorder?.stopRecording()
+
 
                         withContext(Dispatchers.Main) {
                             if (file != null && file.exists() && file.length() > 0) {
@@ -189,6 +188,7 @@ fun MusicRecognitionScreen(
                                     try {
                                         val file = audioRecorder?.stopRecording()
 
+
                                         withContext(Dispatchers.Main) {
                                             if (file != null && file.exists() && file.length() > 0) {
                                                 android.util.Log.d("MusicRecognition", "Manual stop")
@@ -275,6 +275,7 @@ fun MusicRecognitionScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+
             // Additional info
             Text(
                 text = when {
@@ -300,14 +301,11 @@ fun MusicRecognitionScreen(
         }
 
         // Bottom Navigation - Use the one from RecognitionResult
-        Box(
-            modifier = Modifier.align(Alignment.BottomCenter)
-        ) {
-            SharedBottomNavBar(
-                navController = navController as NavHostController,
-                currentRoute = Screen.Home.route
-            )
-        }
+        BottomNavigation(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            navController = navController,
+            currentRoute = "home"
+        )
     }
 }
 
