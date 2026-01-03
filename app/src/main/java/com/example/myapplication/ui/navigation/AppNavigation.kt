@@ -17,9 +17,11 @@ import androidx.navigation.compose.composable
 import com.example.myapplication.ui.screen.AuthScreen
 import com.example.myapplication.ui.screen.FingerprintScreen
 import com.example.myapplication.ui.screen.MusicRecognitionScreen
+import com.example.myapplication.ui.screen.ProfileScreen
 import com.example.myapplication.ui.screen.RecognitionResult
 import com.example.myapplication.ui.viewmodel.FingerprintViewModel
 import com.example.myapplication.ui.viewmodel.MusicRecognitionViewModel
+import com.example.myapplication.ui.viewmodel.ProfileViewModel
 
 @Composable
 fun AppNavigation(
@@ -70,20 +72,18 @@ fun AppNavigation(
             )
         }
 
-        // ❌ PROFILE SCREEN - DISABLED (Placeholder)
         composable(Screen.Profile.route) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFF0A0033)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Profile Screen\n(Coming Soon)",
-                    color = Color.White,
-                    fontSize = 24.sp
-                )
-            }
+            val profileViewModel: ProfileViewModel = hiltViewModel()
+
+            ProfileScreen(
+                navController = navController,
+                onLogout = {
+                    navController.navigate(Screen.Auth.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                viewModel = profileViewModel
+            )
         }
     }
 }
