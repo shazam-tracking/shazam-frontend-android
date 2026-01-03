@@ -94,6 +94,7 @@ class AuthViewModel @Inject constructor(
             }
         }
     }
+
     fun forgotPassword(email: String) {
         viewModelScope.launch {
             repository.forgotPassword(email).collect { result ->

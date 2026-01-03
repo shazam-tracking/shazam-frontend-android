@@ -96,7 +96,6 @@ fun RecognitionResult(
                 )
             }
 
-
             // Main Content
             Column(
                 modifier = Modifier
@@ -231,7 +230,6 @@ fun HeroImageCard(
                 )
         )
 
-
         // Content Overlay
         Column(
             modifier = Modifier
@@ -333,122 +331,6 @@ fun HeroImageCard(
                     )
                 }
             }
-        }
-    }
-}
-
-
-@Composable
-fun AlternativeSongsSection(
-    alternatives: List<AlternativeSong>,
-    context: android.content.Context
-) {
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Other Possible Matches",
-                color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "${alternatives.size} found",
-                color = Color.White.copy(alpha = 0.8f),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        alternatives.forEach { song ->
-            AlternativeSongItem(
-                title = song.title,
-                artist = song.artist,
-                imageUrl = song.imageUrl ?: "",
-                score = song.score,
-                trackUrl = song.trackUrl,
-                context = context
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-    }
-}
-
-@Composable
-fun AlternativeSongItem(
-    title: String,
-    artist: String,
-    imageUrl: String,
-    score: Int,
-    trackUrl: String?,
-    context: android.content.Context
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                Color.White.copy(alpha = 0.05f),
-                RoundedCornerShape(12.dp)
-            )
-            .clickable {
-                trackUrl?.let { url ->
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                    context.startActivity(intent)
-                }
-            }
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        AsyncImage(
-            model = imageUrl.ifEmpty { "https://via.placeholder.com/48" },
-            contentDescription = title,
-            modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(8.dp)),
-            contentScale = ContentScale.Crop
-        )
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1
-            )
-            Text(
-                text = artist,
-                color = Color.White.copy(alpha = 0.6f),
-                fontSize = 12.sp,
-                modifier = Modifier.padding(top = 2.dp),
-                maxLines = 1
-            )
-        }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        // Score badge
-        Box(
-            modifier = Modifier
-                .background(
-                    Color(0xFFBB86FC).copy(alpha = 0.3f),
-                    RoundedCornerShape(8.dp)
-                )
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
-            Text(
-                text = "Score: $score",
-                color = Color(0xFFBB86FC),
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold
-            )
         }
     }
 }
@@ -592,7 +474,6 @@ fun SimilarSongsSection() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-
         val songs = listOf(
             Triple("Blinding lights", "The Weeknd", "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop"),
             Triple("Creepin'", "Metro Boomin - The Weeknd", "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=100&h=100&fit=crop"),
@@ -717,7 +598,6 @@ fun AudioFeaturesSection(
         }
     }
 }
-
 
 @Composable
 fun AudioFeatureBar(label: String, value: Int) {

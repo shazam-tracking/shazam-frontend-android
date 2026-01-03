@@ -106,6 +106,7 @@ class AppRepository @Inject constructor(
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
         }
     }
+
     suspend fun logout() {
         tokenManager.clearToken()
     }
@@ -297,6 +298,7 @@ class AppRepository @Inject constructor(
                 emit(Resource.Error("Audio file is empty"))
                 return@flow
             }
+
             // Auto-detect MIME type from file extension
             val mimeType = when {
                 file.name.endsWith(".wav", ignoreCase = true) -> "audio/wav"

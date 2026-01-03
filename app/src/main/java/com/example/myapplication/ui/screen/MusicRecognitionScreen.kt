@@ -9,10 +9,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,14 +20,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import com.example.myapplication.ui.components.SharedBottomNavBar
 import com.example.myapplication.ui.navigation.Screen
 import com.example.myapplication.ui.viewmodel.MusicRecognitionViewModel
 import com.example.myapplication.util.AudioRecorder
@@ -37,7 +37,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 
 @Composable
 fun MusicRecognitionScreen(
@@ -91,7 +90,6 @@ fun MusicRecognitionScreen(
                     try {
                         val file = audioRecorder?.stopRecording()
 
-
                         withContext(Dispatchers.Main) {
                             if (file != null && file.exists() && file.length() > 0) {
                                 android.util.Log.d("MusicRecognition", "Auto-stop: ${file.length()} bytes")
@@ -126,186 +124,194 @@ fun MusicRecognitionScreen(
         label = ""
     )
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(
+    Scaffold(
+        bottomBar = {
+            SharedBottomNavBar(
+                navController = navController as NavHostController,
+                currentRoute = Screen.Home.route
+            )
+        },
+        containerColor = Color(0xFF0A0033)
+    ) { paddingValues ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF0A0033),
-                            Color(0xFF05001A)
-                        )
-                    )
-                ),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(paddingValues)
         ) {
-
-            Box(
-                modifier = Modifier.size(280.dp),
-                contentAlignment = Alignment.Center
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xFF0A0033),
+                                Color(0xFF05001A)
+                            )
+                        )
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
 
-                // ===== ALWAYS SHOW Outer Rings (even when idle) =====
-                Ring(
-                    size = 440.dp,
-                    strokeWidth = 2.dp,
-                    scale = ringScale * 1.64f,
-                    colors = listOf(Color(0xFFF50BA7), Color(0xFF842DC6), Color(0xFFF17140), Color(0xFFFFCC00)),
-                    alpha = if (state.isListening || state.isProcessing) 0.85f else 0.3f,
-                    offsetY = (-78).dp
-                )
-
-                Ring(
-                    size = 380.dp,
-                    strokeWidth = 2.dp,
-                    scale = ringScale * 1.32f,
-                    colors = listOf(Color(0xFFF50BA7), Color(0xFF842DC6), Color(0xFFF17140), Color(0xFFFFCC00)),
-                    alpha = if (state.isListening || state.isProcessing) 0.7f else 0.25f,
-                    offsetY = (-48).dp
-                )
-
-                Ring(
-                    size = 320.dp,
-                    strokeWidth = 2.dp,
-                    scale = ringScale * 0.96f,
-                    colors = listOf(Color(0xFFF50BA7), Color(0xFF842DC6), Color(0xFFF17140), Color(0xFFFFCC00)),
-                    alpha = if (state.isListening || state.isProcessing) 0.55f else 0.2f,
-                    offsetY = (-16).dp
-                )
-
-                // ===== Center Button =====
                 Box(
-                    modifier = Modifier
-                        .size(220.dp)
-                        .clickable(enabled = !state.isProcessing) {
-                            if (state.isListening) {
-                                // Stop recording manually
-                                scope.launch(Dispatchers.IO) {
-                                    try {
-                                        val file = audioRecorder?.stopRecording()
+                    modifier = Modifier.size(280.dp),
+                    contentAlignment = Alignment.Center
+                ) {
 
+                    // ===== ALWAYS SHOW Outer Rings (even when idle) =====
+                    Ring(
+                        size = 440.dp,
+                        strokeWidth = 2.dp,
+                        scale = ringScale * 1.64f,
+                        colors = listOf(Color(0xFFF50BA7), Color(0xFF842DC6), Color(0xFFF17140), Color(0xFFFFCC00)),
+                        alpha = if (state.isListening || state.isProcessing) 0.85f else 0.3f,
+                        offsetY = (-78).dp
+                    )
 
-                                        withContext(Dispatchers.Main) {
-                                            if (file != null && file.exists() && file.length() > 0) {
-                                                android.util.Log.d("MusicRecognition", "Manual stop")
-                                                viewModel.recognizeSong(file)
-                                            } else {
-                                                android.util.Log.e("MusicRecognition", "Invalid file")
+                    Ring(
+                        size = 380.dp,
+                        strokeWidth = 2.dp,
+                        scale = ringScale * 1.32f,
+                        colors = listOf(Color(0xFFF50BA7), Color(0xFF842DC6), Color(0xFFF17140), Color(0xFFFFCC00)),
+                        alpha = if (state.isListening || state.isProcessing) 0.7f else 0.25f,
+                        offsetY = (-48).dp
+                    )
+
+                    Ring(
+                        size = 320.dp,
+                        strokeWidth = 2.dp,
+                        scale = ringScale * 0.96f,
+                        colors = listOf(Color(0xFFF50BA7), Color(0xFF842DC6), Color(0xFFF17140), Color(0xFFFFCC00)),
+                        alpha = if (state.isListening || state.isProcessing) 0.55f else 0.2f,
+                        offsetY = (-16).dp
+                    )
+
+                    // ===== Center Button =====
+                    Box(
+                        modifier = Modifier
+                            .size(220.dp)
+                            .clickable(enabled = !state.isProcessing) {
+                                if (state.isListening) {
+                                    // Stop recording manually
+                                    scope.launch(Dispatchers.IO) {
+                                        try {
+                                            val file = audioRecorder?.stopRecording()
+
+                                            withContext(Dispatchers.Main) {
+                                                if (file != null && file.exists() && file.length() > 0) {
+                                                    android.util.Log.d("MusicRecognition", "Manual stop")
+                                                    viewModel.recognizeSong(file)
+                                                } else {
+                                                    android.util.Log.e("MusicRecognition", "Invalid file")
+                                                    viewModel.stopListening()
+                                                }
+                                            }
+
+                                            audioRecorder = null
+                                        } catch (e: Exception) {
+                                            android.util.Log.e("MusicRecognition", "Error", e)
+                                            withContext(Dispatchers.Main) {
                                                 viewModel.stopListening()
                                             }
                                         }
-
-                                        audioRecorder = null
-                                    } catch (e: Exception) {
-                                        android.util.Log.e("MusicRecognition", "Error", e)
-                                        withContext(Dispatchers.Main) {
-                                            viewModel.stopListening()
-                                        }
                                     }
+                                } else {
+                                    // Start recording
+                                    permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                                 }
-                            } else {
-                                // Start recording
-                                permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        when {
+                            state.isProcessing -> {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(100.dp),
+                                        color = Color(0xFFBB86FC),
+                                        strokeWidth = 4.dp
+                                    )
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                    Text(
+                                        text = "Recognizing...",
+                                        color = Color.White,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
                             }
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    when {
-                        state.isProcessing -> {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(60.dp),
-                                    color = Color(0xFFBB86FC),
-                                    strokeWidth = 4.dp
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    text = "Recognizing...",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        }
 
-                        state.isListening -> {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                AnimatedWaveform(isListening = true)
-                                Spacer(modifier = Modifier.height(16.dp))
+                            state.isListening -> {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    AnimatedWaveform(isListening = true)
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                    Text(
+                                        text = "${recordingDuration}s / 10s",
+                                        color = Color.White,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
+
+                            else -> {
                                 Text(
-                                    text = "${recordingDuration}s / 10s",
+                                    text = "Tap to Listen",
                                     color = Color.White,
-                                    fontSize = 14.sp
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             }
-                        }
-
-                        else -> {
-                            Text(
-                                text = "Tap to Listen",
-                                color = Color.White,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
                         }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(100.dp))
+                Spacer(modifier = Modifier.height(100.dp))
 
-            // Status text
-            Text(
-                text = when {
-                    state.isProcessing -> "Processing audio..."
-                    state.isListening -> "Listening for music..."
-                    state.recognitionResult?.match == true -> "Song Found! 🎵"
-                    state.recognitionResult?.match == false -> "No match found"
-                    state.errorMessage != null -> "Error occurred"
-                    else -> "Tap to start listening"
-                },
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-
-            // Additional info
-            Text(
-                text = when {
-                    state.isListening -> "Recording... Tap again to stop"
-                    state.isProcessing -> "Analyzing audio fingerprint..."
-                    state.recognitionResult != null -> state.recognitionResult?.data?.title ?: "Unknown"
-                    else -> "Make sure your device can hear the sound clearly"
-                },
-                color = Color.White.copy(alpha = 0.6f),
-                fontSize = 14.sp
-            )
-
-            // Error message
-            state.errorMessage?.let { error ->
-                Spacer(modifier = Modifier.height(16.dp))
+                // Status text
                 Text(
-                    text = error,
-                    color = Color(0xFFCF6679),
+                    text = when {
+                        state.isProcessing -> "Processing audio..."
+                        state.isListening -> "Listening for music..."
+                        state.recognitionResult?.match == true -> "Song Found! 🎵"
+                        state.recognitionResult?.match == false -> "No match found"
+                        state.errorMessage != null -> "Error occurred"
+                        else -> "Tap to start listening"
+                    },
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Additional info
+                Text(
+                    text = when {
+                        state.isListening -> "Recording... Tap again to stop"
+                        state.isProcessing -> "Analyzing audio fingerprint..."
+                        state.recognitionResult != null -> state.recognitionResult?.data?.title ?: "Unknown"
+                        else -> "Make sure your device can hear\nthe sound clearly"
+                    },
+                    color = Color.White.copy(alpha = 0.6f),
                     fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp,
                     modifier = Modifier.padding(horizontal = 32.dp)
                 )
+
+                // Error message
+                state.errorMessage?.let { error ->
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text(
+                        text = error,
+                        color = Color(0xFFCF6679),
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 32.dp)
+                    )
+                }
             }
         }
-
-        // Bottom Navigation - Use the one from RecognitionResult
-        BottomNavigation(
-            modifier = Modifier.align(Alignment.BottomCenter),
-            navController = navController,
-            currentRoute = "home"
-        )
     }
 }
 
@@ -376,5 +382,3 @@ fun AnimatedWaveform(
         }
     }
 }
-
-// REMOVED: BottomNavigation and BottomNavItem - they're already in RecognitionResult.kt

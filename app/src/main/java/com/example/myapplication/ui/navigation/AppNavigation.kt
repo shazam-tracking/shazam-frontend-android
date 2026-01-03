@@ -7,9 +7,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.myapplication.ui.screen.AuthScreen
-import com.example.myapplication.ui.screen.MusicRecognitionScreen
-import com.example.myapplication.ui.screen.RecognitionResult
+import com.example.myapplication.ui.screen.*
+import com.example.myapplication.ui.viewmodel.FingerprintViewModel
 import com.example.myapplication.ui.viewmodel.MusicRecognitionViewModel
 import com.example.myapplication.ui.viewmodel.ProfileViewModel
 
@@ -50,18 +49,12 @@ fun AppNavigation(
         }
 
         composable(Screen.Fingerprint.route) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFF0A0033)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Fingerprint Screen\n(Add New Song)",
-                    color = Color.White,
-                    fontSize = 24.sp
-                )
-            }
+            val fingerprintViewModel: FingerprintViewModel = hiltViewModel()
+
+            FingerprintScreen(
+                navController = navController,
+                viewModel = fingerprintViewModel
+            )
         }
 
         composable(Screen.Profile.route) {
