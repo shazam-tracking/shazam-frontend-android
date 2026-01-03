@@ -53,7 +53,7 @@ class AudioRecorder(private val context: Context) {
                 isRecording = true
 
                 Log.d("AudioRecorder", """
-                    🎙️ Recording started:
+                    🎙 Recording started:
                     - Format: M4A (AAC codec)
                     - Sample Rate: 16000 Hz
                     - Bit Rate: 64 kbps
@@ -115,6 +115,7 @@ class AudioRecorder(private val context: Context) {
             if (isRecording && mediaRecorder != null) {
                 isRecording = false
 
+
                 mediaRecorder?.apply {
                     try {
                         stop()
@@ -128,7 +129,7 @@ class AudioRecorder(private val context: Context) {
                 outputFile?.delete()
                 outputFile = null
 
-                Log.d("AudioRecorder", "🗑️ Recording cancelled")
+                Log.d("AudioRecorder", "🗑 Recording cancelled")
             }
         } catch (e: Exception) {
             Log.e("AudioRecorder", "Error canceling recording", e)
