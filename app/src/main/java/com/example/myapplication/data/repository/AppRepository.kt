@@ -23,10 +23,7 @@ class AppRepository @Inject constructor(
     private val tokenManager: TokenManager
 ) {
 
-    // ==========================================
     // AUTHENTICATION
-    // ==========================================
-
     fun signUp(email: String, password: String, fullName: String): Flow<Resource<String>> = flow {
         try {
             emit(Resource.Loading())
@@ -111,10 +108,7 @@ class AppRepository @Inject constructor(
         tokenManager.clearToken()
     }
 
-    // ==========================================
     // USER PROFILE
-    // ==========================================
-
     fun getUserProfile(): Flow<Resource<UserData>> = flow {
         try {
             emit(Resource.Loading())
@@ -218,10 +212,7 @@ class AppRepository @Inject constructor(
         return file
     }
 
-    // ==========================================
     // FINGERPRINTING
-    // ==========================================
-
     fun indexSongFromSpotify(spotifyUrl: String): Flow<Resource<String>> = flow {
         try {
             emit(Resource.Loading())
