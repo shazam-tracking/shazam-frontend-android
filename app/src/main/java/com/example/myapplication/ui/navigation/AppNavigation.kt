@@ -1,8 +1,5 @@
 package com.example.myapplication.ui.navigation
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,6 +14,16 @@ import com.example.myapplication.ui.screen.MusicRecognitionScreen
 import com.example.myapplication.ui.screen.OnboardingScreen
 import com.example.myapplication.ui.screen.RecognitionResult
 import com.example.myapplication.ui.viewmodel.OnboardingViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.example.myapplication.ui.screen.*
+import com.example.myapplication.ui.viewmodel.FingerprintViewModel
+import com.example.myapplication.ui.viewmodel.MusicRecognitionViewModel
+import com.example.myapplication.ui.viewmodel.ProfileViewModel
 
 @Composable
 fun AppNavigation(
@@ -57,6 +64,19 @@ fun AppNavigation(
             ) {
                 MusicRecognitionScreen(navController = navController)
                 RecognitionResult(navController = navController)
+            val recognitionViewModel: MusicRecognitionViewModel = hiltViewModel()
+            val recognitionState by recognitionViewModel.recognitionState.collectAsState()
+
+            if (recognitionState.recognitionResult?.match == true) {
+                RecognitionResult(
+                    navController = navController,
+                    recognitionData = recognitionState.recognitionResult?.data
+                )
+            } else {
+                MusicRecognitionScreen(
+                    navController = navController,
+                    viewModel = recognitionViewModel
+                )
             }
         }
 
@@ -88,6 +108,35 @@ fun AppNavigation(
                     fontSize = 24.sp
                 )
             }
+            val fingerprintViewModel: FingerprintViewModel = hiltViewModel()
+
+            FingerprintScreen(
+                navController = navController,
+                viewModel = fingerprintViewModel
+            )
+        }
+
+        composable(Screen.Profile.route) {
+            val profileViewModel: ProfileViewModel = hiltViewModel()
+
+            ProfileScreen(
+                navController = navController,
+                onLogout = {
+                    navController.navigate(Screen.Auth.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                viewModel = profileViewModel
+            )
+        }
+
+        composable(Screen.EditProfile.route) {
+            val profileViewModel: ProfileViewModel = hiltViewModel()
+
+            EditProfileScreen(
+                navController = navController,
+                viewModel = profileViewModel
+            )
         }
     }
 }

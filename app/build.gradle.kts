@@ -38,12 +38,8 @@ android {
     buildFeatures {
         compose = true
     }
-
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
-    }
-    kotlinOptions {
-        jvmTarget = "11"
     }
 }
 
@@ -65,11 +61,18 @@ dependencies {
     // Coil for image loading
     implementation("io.coil-kt:coil-compose:2.5.0")
 
+    // Google Sign-In
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+
     // Material Icons Extended
     implementation("androidx.compose.material:material-icons-extended:1.5.4")
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.6")
+
+    // For better audio playback
+    implementation("androidx.media3:media3-exoplayer:1.2.0")
+    implementation("androidx.media3:media3-ui:1.2.0")
 
     // Hilt for Dependency Injection
     implementation("com.google.dagger:hilt-android:2.50")

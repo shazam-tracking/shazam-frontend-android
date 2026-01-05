@@ -8,14 +8,29 @@ import retrofit2.http.*
 
 interface ApiService {
 
-    // Authentication endpoints
+    // ==========================================
+    // AUTHENTICATION ENDPOINTS
+    // ==========================================
+
     @POST("auth/signup")
     suspend fun signUp(@Body request: SignUpRequest): Response<MessageResponse>
 
     @POST("auth/signin")
     suspend fun signIn(@Body request: SignInRequest): Response<AuthResponse>
 
-    // Fingerprint/Index endpoints
+    @POST("auth/google")
+    suspend fun googleSignIn(@Body request: GoogleSignInRequest): Response<AuthResponse>
+
+    @POST("auth/forgot-password")
+    suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<MessageResponse>
+
+    @POST("auth/reset-password")
+    suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<MessageResponse>
+
+    // ==========================================
+    // FINGERPRINT/INDEX ENDPOINTS
+    // ==========================================
+
     @Multipart
     @POST("api/index")
     suspend fun indexFile(
@@ -29,9 +44,28 @@ interface ApiService {
         @Part("spotify_url") spotifyUrl: RequestBody
     ): Response<IndexResponse>
 
+    // ==========================================
+    // MUSIC RECOGNITION ENDPOINT
+    // ==========================================
+
     @Multipart
     @POST("api/recognize")
     suspend fun recognizeSong(
         @Part file: MultipartBody.Part
     ): Response<RecognitionResponse>
+
+    // ==========================================
+    // USER PROFILE ENDPOINTS
+    // ==========================================
+
+    @GET("api/user/me")
+    suspend fun getCurrentUser(): Response<UserProfileResponse>
+
+    @Multipart
+    @PUT("api/user/update")
+    suspend fun updateProfile(
+        @Part("full_name") fullName: RequestBody?,
+        @Part("password") password: RequestBody?,
+        @Part profilePicture: MultipartBody.Part?
+    ): Response<MessageResponse>
 }
