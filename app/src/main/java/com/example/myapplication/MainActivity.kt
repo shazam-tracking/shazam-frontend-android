@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import com.example.myapplication.data.local.OnboardingPreferences
 import com.example.myapplication.data.local.TokenManager
 import com.example.myapplication.ui.navigation.AppNavigation
 import com.example.myapplication.ui.navigation.Screen
@@ -24,11 +25,21 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Remove enableEdgeToEdge() temporarily
+
+        // Check onboarding status
+        val onboardingPreferences = OnboardingPreferences(this)
+        val isOnboardingCompleted = onboardingPreferences.isOnboardingCompleted()
 
         // Check if user is logged in
         val isLoggedIn = runBlocking {
             tokenManager.getToken().first() != null
+        }
+
+        // Determine start destination
+        val startDestination = when {
+            !isOnboardingCompleted -> Screen.Onboarding.route
+            !isLoggedIn -> Screen.Auth.route
+            else -> Screen.Home.route
         }
 
         setContent {
@@ -40,7 +51,7 @@ class MainActivity : ComponentActivity() {
 
                     AppNavigation(
                         navController = navController,
-                        startDestination = if (isLoggedIn) Screen.Home.route else Screen.Auth.route
+                        startDestination = startDestination
                     )
                 }
             }
