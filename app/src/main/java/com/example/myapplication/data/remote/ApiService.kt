@@ -7,11 +7,6 @@ import retrofit2.Response
 import retrofit2.http.*
 
 interface ApiService {
-
-    // ==========================================
-    // AUTHENTICATION ENDPOINTS
-    // ==========================================
-
     @POST("auth/signup")
     suspend fun signUp(@Body request: SignUpRequest): Response<MessageResponse>
 
@@ -27,10 +22,7 @@ interface ApiService {
     @POST("auth/reset-password")
     suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<MessageResponse>
 
-    // ==========================================
     // FINGERPRINT/INDEX ENDPOINTS
-    // ==========================================
-
     @Multipart
     @POST("api/index")
     suspend fun indexFile(
@@ -44,20 +36,14 @@ interface ApiService {
         @Part("spotify_url") spotifyUrl: RequestBody
     ): Response<IndexResponse>
 
-    // ==========================================
     // MUSIC RECOGNITION ENDPOINT
-    // ==========================================
-
     @Multipart
     @POST("api/recognize")
     suspend fun recognizeSong(
         @Part file: MultipartBody.Part
     ): Response<RecognitionResponse>
 
-    // ==========================================
     // USER PROFILE ENDPOINTS
-    // ==========================================
-
     @GET("api/user/me")
     suspend fun getCurrentUser(): Response<UserProfileResponse>
 

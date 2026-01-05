@@ -2,10 +2,6 @@ package com.example.myapplication.data.model
 
 import com.google.gson.annotations.SerializedName
 
-// ==========================================
-// Auth Models
-// ==========================================
-
 data class SignUpRequest(
     val email: String,
     val password: String,
@@ -39,10 +35,7 @@ data class MessageResponse(
     val message: String
 )
 
-// ==========================================
 // User Profile Models
-// ==========================================
-
 data class UserProfileResponse(
     val status: String,
     val data: UserData
@@ -56,19 +49,13 @@ data class UserData(
     @SerializedName("auth_provider") val authProvider: String
 )
 
-// ==========================================
 // Index/Fingerprint Models
-// ==========================================
-
 data class IndexResponse(
     val status: String,
     val message: String
 )
 
-// ==========================================
 // Recognition Models
-// ==========================================
-
 data class RecognitionResponse(
     val status: String,
     val match: Boolean,
