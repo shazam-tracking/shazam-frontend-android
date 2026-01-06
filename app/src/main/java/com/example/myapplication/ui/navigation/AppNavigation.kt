@@ -8,6 +8,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navOptions
 import com.example.myapplication.ui.screen.*
 import com.example.myapplication.ui.viewmodel.FingerprintViewModel
 import com.example.myapplication.ui.viewmodel.MusicRecognitionViewModel
@@ -46,8 +47,13 @@ fun AppNavigation(
             )
         }
 
-        composable(Screen.Home.route) {
-            val recognitionViewModel: MusicRecognitionViewModel = hiltViewModel()
+        composable(
+            route = Screen.Home.route
+        ) { backStackEntry ->
+            // Get ViewModel scoped to navigation graph to prevent recreation
+            val recognitionViewModel: MusicRecognitionViewModel = hiltViewModel(
+                viewModelStoreOwner = backStackEntry
+            )
             val recognitionState by recognitionViewModel.recognitionState.collectAsState()
 
             // Logic to switch between Recognition Screen and Result Screen
@@ -64,8 +70,12 @@ fun AppNavigation(
             }
         }
 
-        composable(Screen.Fingerprint.route) {
-            val fingerprintViewModel: FingerprintViewModel = hiltViewModel()
+        composable(
+            route = Screen.Fingerprint.route
+        ) { backStackEntry ->
+            val fingerprintViewModel: FingerprintViewModel = hiltViewModel(
+                viewModelStoreOwner = backStackEntry
+            )
 
             FingerprintScreen(
                 navController = navController,
@@ -73,8 +83,12 @@ fun AppNavigation(
             )
         }
 
-        composable(Screen.Profile.route) {
-            val profileViewModel: ProfileViewModel = hiltViewModel()
+        composable(
+            route = Screen.Profile.route
+        ) { backStackEntry ->
+            val profileViewModel: ProfileViewModel = hiltViewModel(
+                viewModelStoreOwner = backStackEntry
+            )
 
             ProfileScreen(
                 navController = navController,
@@ -87,8 +101,14 @@ fun AppNavigation(
             )
         }
 
-        composable(Screen.EditProfile.route) {
-            val profileViewModel: ProfileViewModel = hiltViewModel()
+        composable(
+            route = Screen.EditProfile.route
+        ) { backStackEntry ->
+            // Get parent Profile screen's ViewModel
+            val parentEntry = navController.getBackStackEntry(Screen.Profile.route)
+            val profileViewModel: ProfileViewModel = hiltViewModel(
+                viewModelStoreOwner = parentEntry
+            )
 
             EditProfileScreen(
                 navController = navController,
