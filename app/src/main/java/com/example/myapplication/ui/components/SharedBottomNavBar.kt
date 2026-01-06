@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.components
 
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fingerprint
@@ -25,7 +26,8 @@ fun SharedBottomNavBar(
 ) {
     NavigationBar(
         containerColor = Color(0xFF1A1A2E),
-        contentColor = Color.White
+        contentColor = Color.White,
+        modifier = Modifier.height(80.dp)  // Keep original height
     ) {
         // Home
         NavigationBarItem(
@@ -33,7 +35,7 @@ fun SharedBottomNavBar(
                 Icon(
                     Icons.Default.Home,
                     contentDescription = "Home",
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             },
             label = { Text("Home", fontSize = 12.sp) },
@@ -41,13 +43,10 @@ fun SharedBottomNavBar(
             onClick = {
                 if (currentRoute != Screen.Home.route) {
                     navController.navigate(Screen.Home.route) {
-                        // Clear back stack to avoid flickering
                         popUpTo(navController.graph.startDestinationId) {
                             saveState = true
                         }
-                        // Avoid multiple copies
                         launchSingleTop = true
-                        // Restore state when reselecting
                         restoreState = true
                     }
                 }
@@ -67,7 +66,7 @@ fun SharedBottomNavBar(
                 Icon(
                     Icons.Default.Fingerprint,
                     contentDescription = "Fingerprint",
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             },
             label = { Text("Fingerprint", fontSize = 12.sp) },
@@ -75,13 +74,10 @@ fun SharedBottomNavBar(
             onClick = {
                 if (currentRoute != Screen.Fingerprint.route) {
                     navController.navigate(Screen.Fingerprint.route) {
-                        // Clear back stack to avoid flickering
                         popUpTo(navController.graph.startDestinationId) {
                             saveState = true
                         }
-                        // Avoid multiple copies
                         launchSingleTop = true
-                        // Restore state when reselecting
                         restoreState = true
                     }
                 }
@@ -101,7 +97,7 @@ fun SharedBottomNavBar(
                 Icon(
                     Icons.Default.Person,
                     contentDescription = "Profile",
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             },
             label = { Text("Profile", fontSize = 12.sp) },
@@ -109,13 +105,10 @@ fun SharedBottomNavBar(
             onClick = {
                 if (currentRoute != Screen.Profile.route) {
                     navController.navigate(Screen.Profile.route) {
-                        // Clear back stack to avoid flickering
                         popUpTo(navController.graph.startDestinationId) {
                             saveState = true
                         }
-                        // Avoid multiple copies
                         launchSingleTop = true
-                        // Restore state when reselecting
                         restoreState = true
                     }
                 }

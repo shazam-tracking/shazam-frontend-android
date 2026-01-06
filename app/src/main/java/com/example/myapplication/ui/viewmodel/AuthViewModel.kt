@@ -14,6 +14,7 @@ import javax.inject.Inject
 data class AuthState(
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
+    val isSignUpSuccess: Boolean = false,  // NEW: Separate flag for sign up
     val error: String? = null,
     val message: String? = null
 )
@@ -35,7 +36,7 @@ class AuthViewModel @Inject constructor(
                     }
                     is Resource.Success -> {
                         _authState.value = AuthState(
-                            isSuccess = true,
+                            isSignUpSuccess = true,  // Use isSignUpSuccess instead
                             message = result.data
                         )
                     }
@@ -58,7 +59,7 @@ class AuthViewModel @Inject constructor(
                     }
                     is Resource.Success -> {
                         _authState.value = AuthState(
-                            isSuccess = true,
+                            isSuccess = true,  // Only sign in uses isSuccess
                             message = result.data
                         )
                     }

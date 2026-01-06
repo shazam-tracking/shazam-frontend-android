@@ -61,6 +61,7 @@ fun AuthScreen(
         }
     }
 
+    // Handle sign in success - navigate to home
     LaunchedEffect(authState.isSuccess, showForgotPassword) {
         if (authState.isSuccess && !showForgotPassword) {
             onAuthSuccess()
@@ -68,6 +69,20 @@ fun AuthScreen(
         }
     }
 
+    // Handle sign up success - switch to sign in mode
+    LaunchedEffect(authState.isSignUpSuccess) {
+        if (authState.isSignUpSuccess) {
+            delay(2000)  // Show success message for 2 seconds
+            isSignUp = false  // Switch to sign in mode
+            email = ""
+            password = ""
+            confirmPassword = ""
+            fullName = ""
+            viewModel.resetState()
+        }
+    }
+
+    // Handle forgot password success - switch back to sign in
     LaunchedEffect(authState.message, showForgotPassword) {
         if (authState.message != null && showForgotPassword) {
             delay(3000)
